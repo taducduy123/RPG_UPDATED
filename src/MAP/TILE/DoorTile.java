@@ -26,8 +26,9 @@ public class DoorTile extends Tile
     {
         if(!this.isOpen())
         {
-            mark = "--";
+            mark = "00";
         }
+        
         System.out.printf(" |%2s| ", mark);
     }
 

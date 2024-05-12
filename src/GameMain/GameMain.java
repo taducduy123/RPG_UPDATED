@@ -136,7 +136,7 @@ public class GameMain
                     if(stage2.getWinFlag() == true)
                     {
                         System.out.println("YOU WIN ALL THE GAME !!!!!!!!!!!!!!!");
-                        this.stage = 0;
+                        
                     }
                     else if (stage2.getLoseFlag() == true)
                     {

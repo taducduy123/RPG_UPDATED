@@ -97,6 +97,10 @@ public abstract class Map
         }
         return tileToGet;
     }
+    public int getMaxTileCols()
+    {return this.maxTileCols;}
+    public int getMaxTileRows()
+    {return this.maxTileRows;}
 //---------------------------------------------- Load Map from File ------------------------------------------------------------
 
     public void loadMap(String mapFilePath)
@@ -311,7 +315,7 @@ public abstract class Map
         {
             this.items.add(item);
         }
-        else
+        else if(item != null)
         {
             System.out.println("ERROR: You Cannot Set an Item into a Solid Area or Out Of Border!");
         }
@@ -499,6 +503,14 @@ public abstract class Map
     {return ((DoorTile)this.tile[4]).isOpen();}
 
 
+//---------------------------------------------- Center of Map -----------------------------------
+    public Pair mapCenter()
+    {
+        int xCenter = (maxTileCols - 1) / 2;
+        int yCenter = (maxTileRows - 1) /2;
+        Pair pair = new Pair(xCenter, yCenter);
+        return pair;
+    }
 
    //Embedded Main
    public static void main(String[] args) 

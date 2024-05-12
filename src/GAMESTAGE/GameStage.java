@@ -11,10 +11,10 @@ import MAP.*;
 public class GameStage 
 {
     private Player player;                   //current player
-    private Map map;                         //current map
+    protected Map map;                        //current map
     private Inventory inventory;             //current inventory 
 
-    private int stage;                       //currnt stage
+    private int stage;                       //current stage
     private boolean winFlag;
     private boolean loseFlag;
 
@@ -54,41 +54,41 @@ public class GameStage
                 
     }
 
-//---------------------------------- Main Menu ---------------------------------------    
+//---------------------------------- Main Menu ---------------------------------------  
     public void MainMenu(Map m, Player obj, Inventory i){
-    int choice;
+        int choice;
+        do
+        {
+            System.out.println("\n------------------------------------------------------\n");
+            System.out.println("1. Move");
+            System.out.println("2. Show Inventory");
+            System.out.println("3. Attack");
+            System.out.println("4. Back To Home");
+            System.out.print("Enter your choice: ");
+            choice = input.nextInt();
+            input.nextLine();                               //Consume keyboard buffer
 
-    do
-    {
-        System.out.println("\n------------------------------------------------------\n");
-        System.out.println("1. Move");
-        System.out.println("2. Show Inventory");
-        System.out.println("3. Attack");
-        System.out.println("4. Back To Home");
-        System.out.print("Enter your choice: ");
-        choice = input.nextInt();
-        input.nextLine();                               //Consume keyboard buffer
+            switch (choice) {
+                case 1:
+                    moveControl(m, obj, i);
+                    break;
+                case 2:
+                    inventoryControl(m, obj, i);
+                    break;
+                case 3:
+                    attackMenu(m, obj, i);         
+                    break;
+                case 4:                    
+                    //System.out.println("Thanks for playing");
+                    break;               
+                default:
+                    System.out.println("Invalid choice");
+                    break;
+            }           
+        } while(choice != 4 && winFlag == false && loseFlag == false);
+    }
 
-        switch (choice) {
-            case 1:
-                moveControl(m, obj, i);
-                break;
-            case 2:
-                inventoryControl(m, obj, i);
-                break;
-            case 3:
-                attackMenu(m, obj, i);         
-                break;
-            case 4:                    
-                //System.out.println("Thanks for playing");
-                break;               
-            default:
-                System.out.println("Invalid choice");
-                break;
-        }           
-    } while(choice != 4 && winFlag == false && loseFlag == false);
-}
-
+    
 //---------------------------------- Menu for Move ---------------------------------------
 
     public void moveControl(Map m, Player p, Inventory i) {
@@ -168,6 +168,7 @@ public class GameStage
         } while (status == true  && winFlag == false && loseFlag == false);
     }
     
+
 //---------------------------------- Menu for Inventory ---------------------------------------   
     public void inventoryControl(Map m, Player p, Inventory i){
         System.out.println("\n------------------------------------------------------\n");
@@ -245,6 +246,7 @@ public class GameStage
             p.showState();
         }
     }
+
 
 //---------------------------------- Menu for Attack ---------------------------------------  
     public void attackMenu(Map m, Player obj, Inventory j){
@@ -349,9 +351,9 @@ public class GameStage
                 }
                 else{
                     if(m.getMonsterAtIndex(i) instanceof RegularMonster)
-                    ((RegularMonster)m.getMonsterAtIndex(i)).randomMove(m);
+                        ((RegularMonster)m.getMonsterAtIndex(i)).randomMove(m);
                     else if(m.getMonsterAtIndex(i) instanceof TargetMonster)
-                    ((TargetMonster)m.getMonsterAtIndex(i)).moveForwardTo(obj, m);;
+                        ((TargetMonster)m.getMonsterAtIndex(i)).moveForwardTo(obj, m);
                 }
             }
         }

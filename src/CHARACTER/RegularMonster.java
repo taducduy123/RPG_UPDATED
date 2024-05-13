@@ -1,5 +1,8 @@
 package CHARACTER;
 import java.util.Random;
+
+import javax.swing.JOptionPane;
+
 import ITEM.Armor;
 import ITEM.Item;
 import ITEM.Potion;
@@ -19,8 +22,9 @@ public class RegularMonster extends Monster
     public RegularMonster(String name, int maxHP, int atk, int def, int x, int y) 
     {
         super(name, maxHP, atk, def, 4, x, y); 
-        this.setItemToDrop();   
-        this.type = 1;
+        this.setItemToDrop(); 
+        this.lootRate = 0.6;
+       
     }
 
 //----------------------------- Override Methods -------------------------------------------------
@@ -49,7 +53,7 @@ public class RegularMonster extends Monster
 
         Item itemToLoot = null;
         //Loot root = 60%
-        if(ranNum <= 60)
+        if(ranNum <= 100 * this.lootRate)
         {
             ranNum = random.nextInt(itemsToDrop.size()) + 1;            //1,2,3, .... size of itemToDrop
             itemToLoot = itemsToDrop.get(ranNum - 1);
@@ -58,6 +62,31 @@ public class RegularMonster extends Monster
         return itemToLoot;     
     }
 
+
+    @Override
+    public void doWork(Player p, Map m) 
+    {
+        if(this.getHP() > 0)    //if monster is still alive
+        {
+            if(this.collidePlayer(p))
+            {
+                JOptionPane.showMessageDialog(null, "WARNING: " 
+                                                                + this.getName() 
+                                                                + " attacked you. You lost " 
+                                                                + p.takeDamage(this.getAttack()) 
+                                                                + " HP!!!");
+            }
+            else
+            {
+                this.randomMove(m);
+            }
+        }
+        else
+        {
+            m.addItem(this.lootItem());
+            m.removeMonsterHavingPosition(this.getX(), this.getY());
+        }
+    }
 
 //----------------------------------------- Move -------------------------------------------------
 
@@ -102,6 +131,8 @@ public class RegularMonster extends Monster
         }
         
     }
+
+    
 
  
 }

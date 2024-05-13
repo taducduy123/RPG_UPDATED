@@ -5,34 +5,108 @@ import MAP.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import javax.swing.JOptionPane;
+import ITEM.*;
 
-import ITEM.Item;
 
-public class Boss extends Monster{
+public class Boss extends Monster
+{
 
+    private int phase2_turnCount;
+//--------------------------------------------------
     public Boss(String name, int maxhp, int atk, int def, int range, int x, int y) {
         super(name, maxhp, atk, def, range, x, y);
-        //TODO Auto-generated constructor stub
+        this.setItemToDrop();
+        this.lootRate = 1;
+        this.phase2_turnCount = 0;
+    }
+
+
+//-------------------------------------------------- Override Methods -------------------------------------
+    @Override
+    public void setItemToDrop() 
+    {
+        this.itemsToDrop.add(new Weapon("Glory Sword", 70, 3, this.getX(), this.getY()));
+        this.itemsToDrop.add(new Weapon("Shadowstrike Blade", 65, 3, this.getX(), this.getY()));
+        this.itemsToDrop.add(new Weapon("Zues Golden Archery", 50, 6, this.getX(), this.getY()));
+        this.itemsToDrop.add(new Armor("Dragon Armor", 70, 70, this.getX(), this.getY()));
+        this.itemsToDrop.add(new Armor("Titan Shield", 60, 60, this.getX(), this.getY()));
+        this.itemsToDrop.add(new Armor("Silver Shield", 50, 50, this.getX(), this.getY()));
     }
 
     @Override
-    public void setItemToDrop() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setItemToDrop'");
-    }
+    public Item lootItem() 
+    {
+        Random random = new Random();
+        int ranNum = random.nextInt(100) + 1;       //1,2,3,....,100
 
-    @Override
-    public Item lootItem() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'lootItem'");
+        Item itemToLoot = null;
+        //Loot root = 100%
+        if(ranNum <= 100 * this.lootRate)
+        {
+            ranNum = random.nextInt(itemsToDrop.size()) + 1;            //1,2,3, .... size of itemToDrop
+            itemToLoot = itemsToDrop.get(ranNum - 1);
+            itemToLoot.setXY(this.getX(), this.getY());                 //Make position of monster and item align
+        }
+        
+        return itemToLoot;  
     }
 
     @Override
     public String getMark() {
-        return "Bo";
+        return "BO";
     }
     
-    
+    @Override
+    public void doWork(Player p, Map m) 
+    {
+        if(this.getHP() > 0)            //if boss is still alive
+        {
+            if(this.collidePlayer(p))      //if player is in range of boss
+            {
+                if(this.lowerHalfHp())     //this is time boss uses special skills
+                {
+                    ////Now range of boss covers entire map
+                    //this.setRange(m.getMaxTileCols() >= m.getMaxTileRows()? m.getMaxTileCols() : m.getMaxTileRows());
+                    if(this.phase2_turnCount % 5 == 0)        //push player far away after every 5 turns
+                    {
+                        JOptionPane.showMessageDialog(null, "Boss pushes you far away!!!!");
+                        bossPush(m, p);
+                    }
+                    else
+                    {
+                        JOptionPane.showMessageDialog(null, "WARNING: " 
+                                                                + this.getName() 
+                                                                + " attacked you. You lost " 
+                                                                + p.takeDamage(this.getAttack()) 
+                                                                + " HP!!!");
+                    }
+
+                    //Update number of turns in phase 2
+                    this.phase2_turnCount = this.phase2_turnCount + 1;
+                }
+                else
+                {
+                    JOptionPane.showMessageDialog(null, "WARNING: " 
+                                                                + this.getName() 
+                                                                + " attacked you. You lost " 
+                                                                + p.takeDamage(this.getAttack()) 
+                                                                + " HP!!!");
+                }
+            }
+            else
+            {
+                this.bossMove(m, p);
+            }
+        }
+        else                //if died
+        {
+            m.addItem(this.lootItem());
+            m.removeMonsterHavingPosition(this.getX(), this.getY());
+        }
+    }
+
+//----------------------------------------------- Special Skills --------------------------------------------
     public boolean lowerHalfHp(){
         boolean status = false;
         if(this.getHP() <= this.getMaxHp()/2){
@@ -126,7 +200,7 @@ public class Boss extends Monster{
             else if(deltaX < 0 && deltaY > 0)
                 player.setXY(0 , map.getMaxTileRows() - 1, map);
             else if(deltaX > 0 && deltaY > 0)
-                player.setXY(map.getMaxTileRows() -1  , map.getMaxTileCols() - 1, map);
+                player.setXY(map.getMaxTileRows() - 1  , map.getMaxTileCols() - 1, map);
         }
         else{
             if(player.getX() > map.mapCenter().getX()){
@@ -137,5 +211,7 @@ public class Boss extends Monster{
             }
         }
     }
+
+   
 
 }

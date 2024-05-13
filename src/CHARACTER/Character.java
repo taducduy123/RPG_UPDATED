@@ -131,16 +131,24 @@ public abstract class Character
     }
     public int takeDamage(int dmg)
     {
-        int remainingHP = this.HP + this.Defense - dmg;
-        if(remainingHP < 0)
+        int trueDamage = dmg - this.Defense;
+        if(trueDamage > 0)
         {
-            this.HP = 0;
+            int remainingHP = this.HP - trueDamage;
+            if(remainingHP <= 0)
+            {
+                this.HP = 0;
+            }
+            else
+            {
+                this.HP = remainingHP;
+            }
         }
         else
         {
-            this.HP = remainingHP;
+            trueDamage = 0;
         }
-        return (dmg - this.Defense) <= 0 ? 0 : (dmg - this.Defense);
+        return trueDamage;
     }
     
 

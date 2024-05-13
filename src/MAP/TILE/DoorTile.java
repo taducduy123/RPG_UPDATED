@@ -41,6 +41,16 @@ public class DoorTile extends Tile
         }
     }
 
+
+    public void setDoorClosed(Map m)
+    {
+        if(m.numberOfMonsters() > 0)
+        {
+            this.solid = true;
+            this.open = false;
+        }
+    }
+
     public boolean isOpen()
     {return this.open;}
 

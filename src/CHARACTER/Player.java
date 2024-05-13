@@ -19,26 +19,7 @@ public class Player extends Character
     //Constructor #2: Basic properties of player is set by default
     public Player(String name)
     {
-        
-        super(name, 20, 50, 0, 5, 0, 0);
-    }
-
-
-
-
-    @Override
-    public String getMark()
-    {return "X";}
-
-    //Show state of player
-    public void showState()
-    {
-        System.out.println("HP: " + this.getHP() + " / " + this.getMaxHp());
-        System.out.println("Attack: " + this.getAttack());
-        System.out.println("Defense: " + this.getDefense());
-        System.out.println("Range: " + this.getRange());
-        System.out.println("Current Weapon: " + (weapon != null ? weapon.getName() : "None"));
-        System.out.println("Current Armor: " + (armor != null ? armor.getName() : "None"));
+        super(name, 100, 50, 20, 5, 0, 0);
     }
 
 
@@ -55,6 +36,37 @@ public class Player extends Character
             return "No weapon";
         }
         else return this.armor.toString();
+    }
+
+    @Override
+    public String getMark()
+    {return "X";}
+
+
+//------------------------------------- Show State --------------------------------------------
+    //Show state of player
+    public void showState()
+    {
+        System.out.println("HP: " + this.getHP() + " / " + this.getMaxHp());
+        System.out.println("Attack: " + this.getAttack());
+        System.out.println("Defense: " + this.getDefense());
+        System.out.println("Range: " + this.getRange());
+        System.out.println("Current Weapon: " + (weapon != null ? weapon.getName() : "None"));
+        System.out.println("Current Armor: " + (armor != null ? armor.getName() : "None"));
+    }
+
+//----------------------------------- Check Collision with Monster -------------------------------
+
+    public boolean collideMonster(Monster monster)
+    {
+        boolean collision = false;
+        int max_X = this.getX() + this.getRange();
+        int min_X = this.getX() - this.getRange();
+        int max_Y = this.getY() + this.getRange();
+        int min_Y = this.getY() - this.getRange();
+        if(min_X <= monster.getX() && monster.getX() <= max_X && min_Y <= monster.getY() && monster.getY() <= max_Y)
+            collision = true;
+        return collision;
     }
     
 
@@ -154,8 +166,8 @@ public class Player extends Character
     //Embedded Main
     public static void main(String[] args) 
     {
-        Item potion = new Weapon(null, 0, 0, 0, 0);
-        System.out.println(potion instanceof Item);
+        Player player = new Player(null);
+        player.showState();
     }
 
 

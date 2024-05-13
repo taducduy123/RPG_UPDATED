@@ -10,11 +10,11 @@ import MAP.*;
 
 public class GameStage 
 {
-    private Player player;                   //current player
+    protected Player player;                    //current player
     protected Map map;                        //current map
-    private Inventory inventory;             //current inventory 
+    protected Inventory inventory;              //current inventory 
 
-    private int stage;                       //current stage
+    private int stage;                        //current stage
     private boolean winFlag;
     private boolean loseFlag;
 
@@ -101,7 +101,7 @@ public class GameStage
             System.out.println("3. Move Left");
             System.out.println("4. Move Right");
             System.out.println("5. No Move");
-            System.out.println("6. Back to menu");
+            System.out.println("6. Back To Menu (Attack & Inventory)");
             System.out.print("Enter your choice: ");
             choice = input.nextInt();
             input.nextLine();                           //Consume keyboard buffer
@@ -249,11 +249,11 @@ public class GameStage
 
 
 //---------------------------------- Menu for Attack ---------------------------------------  
-    public void attackMenu(Map m, Player obj, Inventory j){
+    public void attackMenu(Map m, Player p, Inventory j){
         //Find all monsters in range of player
         ArrayList<Monster> targets = new ArrayList<Monster>();
         for(int i = 0; i < m.numberOfMonsters(); i++){
-            if(isInRange(obj, m.getMonsterAtIndex(i)))
+            if(p.collideMonster(m.getMonsterAtIndex(i)))
                 targets.add(m.getMonsterAtIndex(i));
         }
 
@@ -276,21 +276,22 @@ public class GameStage
             System.out.print("Choose a number (0: Exit || 1 - " + targets.size() + ") to attack monster: ");
             choice = input.nextInt();
             if(choice > 0){
-                targets.get(choice - 1).takeDamage(obj.getAttack());
-                updateGame(m, obj, j);
-                m.drawMap(obj);
-                obj.showState();
+                targets.get(choice - 1).takeDamage(p.getAttack());
+                updateGame(m, p, j);
+                m.drawMap(p);
+                p.showState();
                 targets.clear();
             }
             else if(choice < 0)
                 System.out.println("Invalid choice");
             else{           
                 System.out.println("\n------------------------------------------------------\n");
-                m.drawMap(obj);
+                m.drawMap(p);
             }
         }
     }
 
+    /*
     public boolean isInRange(Character obj1, Character obj2){
         boolean status = false;
         int max_X = obj1.getX() + obj1.getRange();
@@ -301,10 +302,10 @@ public class GameStage
             status = true;
         return status;
     }
+    */
 
     
-   
-    
+
 
 //---------------------------------- Update Object ------------------------------------------------
 
@@ -335,27 +336,9 @@ public class GameStage
     }
 
     //Update monsters
-    public void updateMonsters(Map m, Player obj){
+    public void updateMonsters(Map m, Player p){
         for(int i = 0; i < m.numberOfMonsters(); i++){
-            if(m.getMonsterAtIndex(i).getHP() == 0){
-                m.addItem(m.getMonsterAtIndex(i).lootItem());
-                m.removeMonsterHavingPosition(m.getMonsterAtIndex(i).getX(), m.getMonsterAtIndex(i).getY());
-            }
-            else{
-                if(isInRange(m.getMonsterAtIndex(i), obj)){
-                    JOptionPane.showMessageDialog(null, "WARNING: " 
-                                                    + m.getMonsterAtIndex(i).getName() 
-                                                    + " attacked you. You lost " 
-                                                    + obj.takeDamage(m.getMonsterAtIndex(i).getAttack()) 
-                                                    + " HP!!!");
-                }
-                else{
-                    if(m.getMonsterAtIndex(i) instanceof RegularMonster)
-                        ((RegularMonster)m.getMonsterAtIndex(i)).randomMove(m);
-                    else if(m.getMonsterAtIndex(i) instanceof TargetMonster)
-                        ((TargetMonster)m.getMonsterAtIndex(i)).moveForwardTo(obj, m);
-                }
-            }
+            m.getMonsterAtIndex(i).doWork(p, m);
         }
     }
     
@@ -379,7 +362,7 @@ public class GameStage
     public boolean playerCollideAnyMonster(Map m, Player p){
         boolean status = false;
         for(int i = 0; i < m.numberOfMonsters(); i++){
-            if(isInRange(p, m.getMonsterAtIndex(i))){
+            if(p.collideMonster(m.getMonsterAtIndex(i))){
                 status = true;
                 break;
             }
@@ -406,7 +389,7 @@ public class GameStage
         {
             if(this.map.checkDoorOpen() == true)        //if door is open
             {
-                System.out.println("NOW DOOR IS OPEN!!!!");
+                System.out.println("\n>> NOW DOOR IS OPEN!!!!");
                 if(this.map.containDoorAt(this.player.getX(), this.player.getY())) //if player moves into the door
                 {
                     this.winFlag = true;                                //winFlag
@@ -430,12 +413,12 @@ public class GameStage
     //Embedded Main
     public static void main(String[] args) 
     {
-        final String path1 = "src\\InputFile\\map1.txt";
-        final int inventorySize = 5;
-        final int stage = 1;
+        final String path = "src\\InputFile\\map3.txt";
+        final int inventorySize = 10;
+        final int stage = 3;
 
-        Player player = new Player(null, 40, 50, 0, 5, 0, 0);
-        Map map = new Map1(path1);
+        Player player = new Player(null);
+        Map map = new Map(path);
         Inventory inventory = new Inventory(inventorySize);
 
         GameStage stage1 = new GameStage(player, map, inventory, stage);

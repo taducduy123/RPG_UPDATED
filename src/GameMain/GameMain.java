@@ -1,8 +1,6 @@
 package GameMain;
-import MAP.Map;
-import MAP.Map1;
-import MAP.Map2;
 
+import MAP.Map;
 import java.util.Scanner;
 import CHARACTER.Player;
 import GAMESTAGE.GameStage;
@@ -13,14 +11,12 @@ public class GameMain
     private Player player;
     private Map map;
     private Inventory inventory;
-    private int stage;
-    private GameStage stage1, stage2; 
+    private int stageNo;
+    private GameStage[] stage; 
 
-    private final int inventorySize = 5;
-    //private final int maxStage = 2;
-    private final String path1 = "src\\InputFile\\map1.txt";
-    private final String path2 = "src\\InputFile\\map2.txt";
-
+    private final int inventorySize = 10;
+    private final int maxStage = 3;
+    private String[] path = new String[]{"src/InputFile/map1.txt", "src/InputFile/map2.txt", "src/InputFile/map3.txt"};
     private String playerName;
 
     private static Scanner input = new Scanner(System.in);
@@ -29,6 +25,12 @@ public class GameMain
     //Constructor
     public GameMain()
     {
+        this.stage = new GameStage[maxStage];
+    }
+
+    public void start()
+    {
+        //Greeting
         System.out.print("Enter you name: ");
         this.playerName = input.nextLine();
         System.out.println("\n**************************************************");
@@ -36,19 +38,18 @@ public class GameMain
         System.out.println("Press any key to continue: ");
         input.nextLine();
 
+        //Build current game state
         this.player = new Player(playerName);
-        this.map = new Map1(path1);
+        this.map = new Map(path[0]);
         this.inventory = new Inventory(inventorySize);
-        this.stage = 1;
+        this.stageNo = 1;
+
+        //Run main loop
+        runHomeMenu();
     }
 
-    public void start()
-    {
-        runMainLoop();
-    }
 
-
-    public void runMainLoop()
+    public void runHomeMenu()
     {
         int choice;
         do
@@ -62,14 +63,15 @@ public class GameMain
             System.out.print("Enter your choice: ");
             choice = input.nextInt();
             input.nextLine();                //Consume keyboard buffer
+
             switch (choice) 
             {
                 case 1:
                         resetGame();
-                        this.runStageLoop();
+                        this.runStagesLoop();
                         break;
                 case 2:
-                        this.runStageLoop();
+                        this.runStagesLoop();
                         break;
                 case 3:
                         System.out.println("See you next time!");
@@ -82,88 +84,72 @@ public class GameMain
         } while (choice != 3);
     }
     
-    public void runStageLoop()
+    public void runStagesLoop()
     {
-        boolean status = true;
-        while (status == true) 
+        boolean backToHome = false;
+        while (!backToHome) 
         {
-            switch (this.stage) 
-            {
-                case 1:
-                        stage1 = new GameStage(player, map, inventory, stage);
-                        stage1.StartGame();
-                        status = updateNewState();
-                        break;
-            
-                case 2:
-                        stage2 = new GameStage(player, map, inventory, stage);
-                        stage2.StartGame();
-                        status = updateNewState();
-                        break;
-                default:
-                    break;
-            }
+            stage[stageNo - 1] = new GameStage(player, map, inventory, stageNo);
+            stage[stageNo - 1].StartGame();
+            backToHome = updateGameState();
         }
     }
 
 
-    public boolean updateNewState()
+    public boolean updateGameState()
     {
-        boolean status = true;
-        switch (this.stage) 
+        boolean shouldBackHome = false;
+        if(this.stageNo != this.maxStage)
         {
-            case 1:
-                    if(stage1.getWinFlag() == true)
-                    {
-                        this.stage = this.stage + 1;
-                        this.player = new Player(this.playerName);
-                        this.map = new Map2(path2);
-                    }
-                    else if (stage1.getLoseFlag() == true)
-                    {
-                        this.stage = 1;
-                        this.player = new Player(this.playerName);
-                        this.map = new Map1(path1);
-                        this.inventory = new Inventory(inventorySize);
-                    }
-                    else
-                    {
-                        status = false;         //back to HomeMenu
-                    }
-                    break;
-        
-            case 2:
-                    if(stage2.getWinFlag() == true)
-                    {
-                        System.out.println("YOU WIN ALL THE GAME !!!!!!!!!!!!!!!");
-                        
-                    }
-                    else if (stage2.getLoseFlag() == true)
-                    {
-                        this.stage = 1;
-                        this.player = new Player(this.playerName);
-                        this.map = new Map1(path1);
-                        this.inventory = new Inventory(inventorySize);
-                    }
-                    else
-                    {
-                        status = false;        //back to HomeMenu
-                    }
-                    break;
-            default:
-                    break;
+            if(stage[stageNo - 1].getWinFlag() == true)
+            {
+                this.stageNo = this.stageNo + 1;
+                this.player = new Player(this.playerName);
+                this.map = new Map(path[stageNo - 1]);                      
+            }
+            else if (stage[stageNo - 1].getLoseFlag() == true)
+            {
+                shouldBackHome = true;
+                this.stageNo = 1;
+                this.player = new Player(this.playerName);
+                this.map = new Map(path[stageNo - 1]);
+                this.inventory.clear();;
+            }
+            else
+            {
+                shouldBackHome = true;        //back to HomeMenu
+            }
         }
-
-        return status;
+        else
+        {
+            if(stage[stageNo - 1].getWinFlag() == true)
+            {
+                shouldBackHome = true;
+                System.out.println("CONGRATULATION! YOU WIN ENTIRE GAME!!!!!!!");                     
+            }
+            else if (stage[stageNo - 1].getLoseFlag() == true)
+            {
+                shouldBackHome = true;
+                this.stageNo = 1;
+                this.player = new Player(this.playerName);
+                this.map = new Map(path[stageNo - 1]);
+                this.inventory.clear();;
+            }
+            else
+            {
+                shouldBackHome = true;        //back to HomeMenu
+            }
+        }
+        return shouldBackHome;
     }
     
 
     public void resetGame()
     {
         this.player = new Player(playerName);
-        this.map = new Map1(path1);
-        this.inventory = new Inventory(inventorySize);
-        this.stage = 1;
+        this.map = new Map(path[0]);
+        this.inventory.clear();
+        this.stageNo = 1;
     }
 
     

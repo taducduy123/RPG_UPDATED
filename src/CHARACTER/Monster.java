@@ -2,13 +2,14 @@ package CHARACTER;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import ITEM.Item;
+import MAP.Map;
 
 public abstract class Monster extends Character
 {
     protected List<Item> itemsToDrop;
-    public int type;
+    protected double lootRate;
+    
 
 //------------------------------------------
 
@@ -22,18 +23,28 @@ public abstract class Monster extends Character
 
 
 //------------------------------ Getter Method ------------------------------------
-    public int getMonsterType(){
-        return this.type;
+    
+    
+
+//------------------------------ Check Collison with player -----------------------
+
+    public boolean collidePlayer(Player p)
+    {
+        boolean collision = false;
+        int max_X = this.getX() + this.getRange();
+        int min_X = this.getX() - this.getRange();
+        int max_Y = this.getY() + this.getRange();
+        int min_Y = this.getY() - this.getRange();
+        if(min_X <= p.getX() && p.getX() <= max_X && min_Y <= p.getY() && p.getY() <= max_Y)
+            collision = true;
+        return collision;
     }
-    public boolean isDie(){
-        boolean status = false;
-        if(this.getHP() <= 0)
-            status = true;
-        return status;
-    }
+    
 //------------------------------ Abstract Methods ---------------------------------
 
     public abstract void setItemToDrop();
     public abstract Item lootItem();
+    public abstract void doWork(Player p, Map m);
+    
     
 }

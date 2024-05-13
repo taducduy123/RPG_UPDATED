@@ -5,6 +5,8 @@ import java.util.List;
 import MAP.Map;
 import java.util.Random;
 
+import javax.swing.JOptionPane;
+
 import ITEM.*;
 import MAP.Pair;
 
@@ -21,7 +23,7 @@ public class TargetMonster extends Monster
     {
         super(name, maxHP, atk, def, 1, x, y); 
         this.setItemToDrop();   
-        this.type = 2;
+        this.lootRate = 0.5;
     }
 
 //----------------------------- Override Methods -------------------------------------------------
@@ -52,8 +54,8 @@ public class TargetMonster extends Monster
         int ranNum = random.nextInt(100) + 1;       //1,2,3,....,100
 
         Item itemToLoot = null;
-        //Loot root = 60%
-        if(ranNum <= 60)
+        //Loot root = 50%
+        if(ranNum <= 100 * this.lootRate)
         {
             ranNum = random.nextInt(itemsToDrop.size()) + 1;            //1,2,3, .... size of itemToDrop
             itemToLoot = itemsToDrop.get(ranNum - 1);
@@ -62,6 +64,34 @@ public class TargetMonster extends Monster
         
         return itemToLoot;     
     }
+
+
+    @Override
+    public void doWork(Player p, Map m) 
+    {
+        if(this.getHP() > 0)        //if monster is still alive
+        {
+            if(this.collidePlayer(p))
+            {
+                JOptionPane.showMessageDialog(null, "WARNING: " 
+                                                                + this.getName() 
+                                                                + " attacked you. You lost " 
+                                                                + p.takeDamage(this.getAttack()) 
+                                                                + " HP!!!");
+            }
+            else
+            {
+                this.moveForwardTo(p, m);
+            }
+        }
+        else                //if died
+        {
+            m.addItem(this.lootItem());
+            m.removeMonsterHavingPosition(this.getX(), this.getY());
+        }
+
+    }
+
 //-------------------------------------- Move ---------------------------------------------------------
 
     public void moveForwardTo(Character player, Map map)

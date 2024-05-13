@@ -1,18 +1,23 @@
 package MAP;
 import java.io.*;
 import java.util.*;
+
+import CHARACTER.Boss;
 import CHARACTER.Character;
 import CHARACTER.Monster;
 import CHARACTER.Player;
+import CHARACTER.RegularMonster;
+import CHARACTER.TargetMonster;
 import ITEM.*;
 import MAP.TILE.*;
 
 
-public abstract class Map 
+public class Map 
 {
     private final int maxTileCols = 20;
     private final int maxTileRows = 20;
     private final int maxPossibleTypesOfTile = 5;
+    private String path;
 
     private Tile[] tile;
     private int[][] tileManager;
@@ -26,6 +31,9 @@ public abstract class Map
     //Constructor
     public Map(String mapFilePath)
     {
+        //Store file path
+        this.path = mapFilePath;
+
         //Intialize items and monsters
         this.items = new LinkedList<>();
         this.monsters = new LinkedList<>();
@@ -119,15 +127,16 @@ public abstract class Map
             //Open input file for reading
             Scanner inputFile = new Scanner(myFile);
 
-            //Read line by line
+            //1. Read Map
             String line;
+            String[] numbers;
             for(int i = 0; i < maxTileRows; i++)            // i ~ y-coor of obj in xy plane
             {
                 //Read every line in text file
                 line = inputFile.nextLine();
 
                 //Get tokens from the line
-                String[] numbers = line.split(" ");
+                numbers = line.split(" ");
 
                 //Load all tokens into int[][] tileManager
                 for(int j = 0; j < maxTileCols; j++)        //j ~ x-coor of obj in xy plane
@@ -135,6 +144,79 @@ public abstract class Map
                     tileManager[i][j] = Integer.parseInt(numbers[j]);
                 }
             }
+
+            //2. Read Items
+            String itemType = "";
+            String[] info;
+           
+            while(inputFile.hasNext() && itemType.compareToIgnoreCase("END_ITEM") != 0)
+            {
+                line = inputFile.nextLine();
+                info = line.split(",");
+                itemType = info[0];
+                switch (itemType) 
+                {
+                   case "Armor":
+                                this.items.add(new Armor(info[1], Integer.parseInt(info[2]), 
+                                                                  Integer.parseInt(info[3]), 
+                                                                  Integer.parseInt(info[4]), 
+                                                                  Integer.parseInt(info[5])));
+                                break;
+                    case "Weapon":
+                                this.items.add(new Weapon(info[1], Integer.parseInt(info[2]), 
+                                                                  Integer.parseInt(info[3]), 
+                                                                  Integer.parseInt(info[4]), 
+                                                                  Integer.parseInt(info[5])));
+                                break;
+                    case "Potion":
+                                this.items.add(new Potion(info[1], Integer.parseInt(info[2]), 
+                                                                  Integer.parseInt(info[3]), 
+                                                                  Integer.parseInt(info[4])));
+                                break;
+                    default:
+                                break;
+                }
+            } 
+
+            //3. Read Monsters
+            String monsterType = "";
+            while(inputFile.hasNext() && monsterType.compareToIgnoreCase("END_MONSTER") != 0)
+            {
+                line = inputFile.nextLine();
+                info = line.split(",");
+                monsterType = info[0];
+                switch (monsterType) 
+                {
+                   case "RegularMonster":
+                                this.monsters.add(new RegularMonster(info[1], Integer.parseInt(info[2]), 
+                                                                              Integer.parseInt(info[3]), 
+                                                                              Integer.parseInt(info[4]), 
+                                                                              Integer.parseInt(info[5]),
+                                                                              Integer.parseInt(info[6])));
+                                break;
+                                
+                    case "TargetMonster":
+                                this.monsters.add(new TargetMonster(info[1], Integer.parseInt(info[2]), 
+                                                                             Integer.parseInt(info[3]), 
+                                                                             Integer.parseInt(info[4]), 
+                                                                             Integer.parseInt(info[5]),
+                                                                             Integer.parseInt(info[6])));
+                                break;
+
+                    case "Boss":
+                                this.monsters.add(new Boss(info[1], Integer.parseInt(info[2]), 
+                                                                    Integer.parseInt(info[3]), 
+                                                                    Integer.parseInt(info[4]), 
+                                                                    Integer.parseInt(info[5]),
+                                                                    Integer.parseInt(info[6]),
+                                                                    Integer.parseInt(info[7])));
+                                break;
+
+                    default:
+                                break;
+                }
+            }
+
 
             //Close the file
             inputFile.close();
@@ -145,6 +227,30 @@ public abstract class Map
         }
     }
 
+//---------------------------------------------- Reset Map  ------------------------------------------------------------
+
+    public void resetMap()
+    {
+        if(this.path == null)
+        {
+            System.out.println("ERROR: Be ensure that map used to be created!");
+        }
+        else
+        {
+            //Clear map
+            this.items.clear();
+            this.monsters.clear();
+
+            //Reload map
+            this.loadMap(path);
+
+            //Check door open
+            if(this.checkDoorOpen() == true)
+            {
+                ((DoorTile)this.tile[4]).setDoorClosed(this);
+            }
+        }
+    }
 
 //--------------------------------  Diplaying Map + Objects on map ------------------------------------------------------------
 
@@ -489,7 +595,7 @@ public abstract class Map
     }
 
    
-//---------------------------------------------- Open the door ----------------------------------------------------------
+//---------------------------------------------- Open/Close the door ----------------------------------------------------------
     public void openDoor()
     {
         if(this.monsters.size() == 0)
@@ -498,6 +604,13 @@ public abstract class Map
         }
     }
 
+    public void closeDoor()
+    {
+        if(this.monsters.size() > 0)
+        {
+            ((DoorTile)this.tile[4]).setDoorClosed(this);
+        }
+    }
 
     public boolean checkDoorOpen()
     {return ((DoorTile)this.tile[4]).isOpen();}
@@ -512,15 +625,22 @@ public abstract class Map
         return pair;
     }
 
+
+
    //Embedded Main
    public static void main(String[] args) 
    {
         
         Player hero = new Player("Hero", 0, 0, 0, 0, 0, 0);
 
-        String path = "src/InputFile/map1.txt";
-        Map map = new Map1(path);
+        String path = "src/InputFile/map3.txt";
+        Map map = new Map(path);
+        map.addItem(new Weapon(path, 0, 0, 17, 17));
+       
         map.drawMap(hero);
+
+        //map.resetMap();
+        //map.drawMap(hero);
         //LinkedList<LinkedList<Integer>> vertice = new LinkedList<>();
         //map.to_EdgeList_Graph(vertice);
         //System.out.println(map.path(0, 0, 1, 0));
@@ -536,7 +656,7 @@ public abstract class Map
         }   
         */
 
-        System.out.println(map.checkDoorOpen());
+        //System.out.println(map.checkDoorOpen());
 
         
    }
